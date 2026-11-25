@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Cookie Clicker Pro</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+  html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI', system-ui, sans-serif; color: #fff; }
+
+  body {
+    background: linear-gradient(135deg, #3e2723, #5d4037, #4e342e);
+    transition: background 1.5s ease;
+    position: relative;
+  }
+  body.bg-1 { background: linear-gradient(135deg, #3e2723, #5d4037, #4e342e); }
+  body.bg-2 { background: linear-gradient(135deg, #1a237e, #283593, #3949ab); }
+  body.bg-3 { background: linear-gradient(135deg, #004d40, #00695c, #00897b); }
+  body.bg-4 { background: linear-gradient(135deg, #b71c1c, #c62828, #d32f2f); }
+  body.bg-5 { background: linear-gradient(135deg, #4a148c, #6a1b9a, #7b1fa2); }
+  body.bg-6 { background: linear-gradient(135deg, #e65100, #ef6c00, #f57c00); }
+  body.bg-7 { background: linear-gradient(135deg, #1b5e20, #2e7d32, #388e3c); }
+  body.bg-8 { background: linear-gradient(135deg, #000000, #212121, #424242); }
+
+  .watermark {
+    position: fixed;
+    font-size: 14px;
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.15);
+    pointer-events: none;
+    z-index: 9998;
+    letter-spacing: 1px;
+    text-shadow: 0 0 10px rgba(255,255,255,0.1);
+  }
+  .watermark.top-left { top: 10px; left: 10px; }
+  .watermark.bottom-right { bottom: 10px; right: 10px; }
+
+  .particles-bg {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image:
+      radial-gradient(2px 2px at 20% 30%, rgba(255,215,0,0.3), transparent),
+      radial-gradient(1px 1px at 60% 70%, rgba(255,255,255,0.2), transparent),
+      radial-gradient(1.5px 1.5px at 80% 10%, rgba(255,215,0,0.3), transparent),
+      radial-gradient(1px 1px at 30% 80%, rgba(255,255,255,0.2), transparent);
+    background-size: 200% 200%;
+    animation: twinkle 8s linear infinite;
+    opacity: 0.5;
+  }
+  @keyframes twinkle { 0%,100%{opacity:.3} 50%{opacity:.7} }
+
+  .game {
+    position: relative; z-index: 1;
+    width: 100%; height: 100%;
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    max-width: 520px; margin: 0 auto;
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .header {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 16px;
+    padding: 12px 16px;
+    display: flex; justify-content: space-between; align-items: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+  .balance { font-size: 22px; font-weight: 700; text-shadow: 0 0 10px rgba(255,215,0,0.8); }
+  .balance .coin { color: #ffd700; }
+  .level-box { text-align: right; font-size: 12px; opacity: 0.9; }
+  .level-box b { font-size: 16px; color: #ffeb3b; }
+
+  .progress-wrap {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+    padding: 4px;
+    height: 22px;
+    position: relative;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #ff6b6b, #ffd700, #ffeb3b);
+    border-radius: 16px;
+    width: 0%;
+    transition: width 0.4s ease;
+    box-shadow: 0 0 15px rgba(255,215,0,0.6);
+  }
+  .progress-text {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600; text-shadow: 0 1px 2px #000;
+  }
+
+  .clicker-area {
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .clicker {
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #fff, #d2691e 40%, #8b4513 80%);
+    box-shadow:
+      0 0 40px rgba(210,105,30,0.8),
+      inset -10px -10px 30px rgba(0,0,0,0.4),
+      inset 10px 10px 30px rgba(255,255,255,0.3);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 100px;
+    transition: transform 0.08s ease, background 0.5s ease;
+    position: relative;
+    animation: float 3s ease-in-out infinite;
+  }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+  .clicker:active { transform: scale(0.92); animation: none; }
+  .clicker .emoji { pointer-events: none; filter: drop-shadow(0 0 10px rgba(255,255,255,0.6)); }
+
+  .float-text {
+    position: absolute;
+    font-weight: 700;
+    font-size: 22px;
+    color: #ffd700;
+    text-shadow: 0 0 8px #000, 0 0 4px #fff;
+    pointer-events: none;
+    animation: floatUp 1s ease-out forwards;
+  }
+  .float-text.crit {
+    font-size: 32px;
+    color: #ff4444;
+    text-shadow: 0 0 15px #ff0000, 0 0 8px #fff;
+  }
+  @keyframes floatUp {
+    0% { transform: translateY(0) scale(0.5); opacity: 0; }
+    20% { transform: translateY(-10px) scale(1.2); opacity: 1; }
+    100% { transform: translateY(-80px) scale(1); opacity: 0; }
+  }
+
+  .particle {
+    position: absolute; width: 8px; height: 8px;
+    background: #ffd700; border-radius: 50%;
+    pointer-events: none;
+    box-shadow: 0 0 6px #ffd700;
+  }
+
+  .combo-bar {
+    position: absolute;
+    top: 10px; left: 10px;
+    background: rgba(0,0,0,0.6);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 10px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    z-index: 5;
+  }
+  .combo-bar .combo-count { color: #ff6b6b; font-size: 16px; }
+  .combo-bar .combo-mult { color: #ffd700; }
+
+  .tabs {
+    display: flex; gap: 6px;
+    background: rgba(0,0,0,0.4);
+    padding: 6px; border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  .tab {
+    flex: 1; padding: 10px 6px;
+    background: transparent; border: none; color: #fff;
+    font-size: 13px; font-weight: 600;
+    border-radius: 10px; cursor: pointer;
+    transition: all 0.25s ease;
+    opacity: 0.7;
+  }
+  .tab.active {
+    background: linear-gradient(135deg, #ff6b6b, #ffd700);
+    opacity: 1;
+    box-shadow: 0 4px 12px rgba(255,107,107,0.5);
+  }
+  .tab:hover:not(.active) { opacity: 0.9; background: rgba(255,255,255,0.1); }
+
+  .scroll-area {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 14px;
+    padding: 8px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: 280px;
+    scrollbar-width: thin;
+    scrollbar-color: #ffd700 rgba(0,0,0,0.3);
+  }
+  .scroll-area::-webkit-scrollbar { width: 6px; }
+  .scroll-area::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); border-radius: 3px; }
+  .scroll-area::-webkit-scrollbar-thumb { background: linear-gradient(#ff6b6b, #ffd700); border-radius: 3px; }
+
+  .shop-item {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 12px;
+    padding: 10px;
+    margin-bottom: 8px;
+    transition: all 0.2s ease;
+  }
+  .shop-item:last-child { margin-bottom: 0; }
+  .shop-item:hover { background: rgba(255,255,255,0.15); transform: translateX(2px); }
+  .shop-item.locked { opacity: 0.45; }
+
+  .item-icon {
+    width: 48px; height: 48px;
+    background: linear-gradient(135deg, #ff6b6b, #ffd700);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+  .item-info { flex: 1; min-width: 0; }
+  .item-name { font-weight: 700; font-size: 14px; }
+  .item-desc { font-size: 11px; opacity: 0.75; margin-top: 2px; }
+  .item-level { font-size: 10px; color: #ffeb3b; margin-top: 2px; }
+  .buy-btn {
+    background: linear-gradient(135deg, #00c853, #00e676);
+    color: #fff; border: none;
+    padding: 8px 12px; border-radius: 10px;
+    font-weight: 700; font-size: 12px;
+    cursor: pointer; white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0,200,83,0.5);
+    transition: all 0.2s ease;
+  }
+  .buy-btn:hover:not(:disabled) { transform: scale(1.05); }
+  .buy-btn:disabled { background: #555; cursor: not-allowed; box-shadow: none; }
+  .buy-btn.ad { background: linear-gradient(135deg, #ff6b6b, #ee5a6f); box-shadow: 0 2px 8px rgba(255,107,107,0.5); }
+
+  .toast {
+    position: fixed; top: 20px; left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    background: rgba(0,0,0,0.9);
+    backdrop-filter: blur(10px);
+    padding: 12px 20px; border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.3);
+    font-weight: 600; font-size: 14px;
+    z-index: 1000;
+    transition: transform 0.4s ease;
+    pointer-events: none;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  .buffs {
+    position: absolute; top: 10px; right: 10px;
+    display: flex; flex-direction: column; gap: 4px;
+    z-index: 5;
+  }
+  .buff {
+    background: rgba(255,107,107,0.3);
+    border: 1px solid #ff6b6b;
+    padding: 4px 8px; border-radius: 8px;
+    font-size: 11px; font-weight: 600;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+
+  .bonus-orb {
+    position: absolute;
+    width: 50px; height: 50px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #ffd700, #ff8c00);
+    box-shadow: 0 0 20px #ffd700;
+    cursor: pointer;
+    animation: orbFloat 3s ease-in-out infinite, orbPulse 1s ease-in-out infinite;
+    z-index: 10;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+  }
+  @keyframes orbFloat {
+    0%,100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(180deg); }
+  }
+  @keyframes orbPulse {
+    0%,100% { box-shadow: 0 0 20px #ffd700; }
+    50% { box-shadow: 0 0 40px #ffd700, 0 0 60px #ff8c00; }
+  }
+
+  .achievement-popup {
+    position: fixed;
+    bottom: 20px; left: 50%;
+    transform: translateX(-50%) translateY(200px);
+    background: linear-gradient(135deg, #ff6b6b, #ffd700);
+    padding: 16px 24px; border-radius: 16px;
+    border: 2px solid #fff;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    z-index: 1001;
+    transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    text-align: center;
+  }
+  .achievement-popup.show { transform: translateX(-50%) translateY(0); }
+  .achievement-popup .ach-title { font-size: 12px; opacity: 0.9; margin-bottom: 4px; }
+  .achievement-popup .ach-name { font-size: 18px; font-weight: 700; }
+
+  .loader {
+    position: fixed; inset: 0;
+    background: #3e2723;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 16px;
+    z-index: 9999;
+    transition: opacity 0.5s ease;
+  }
+  .loader.hide { opacity: 0; pointer-events: none; }
+  .spinner {
+    width: 50px; height: 50px;
+    border: 4px solid rgba(255,255,255,0.2);
+    border-top-color: #ffd700;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .prestige-btn {
+    position: absolute;
+    bottom: 10px; right: 10px;
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+    border: 2px solid #fff;
+    padding: 8px 16px; border-radius: 12px;
+    font-weight: 700; font-size: 12px;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(245,87,108,0.6);
+    z-index: 5;
+    animation: prestigeGlow 2s ease-in-out infinite;
+  }
+  @keyframes prestigeGlow {
+    0%,100% { box-shadow: 0 4px 16px rgba(245,87,108,0.6); }
+    50% { box-shadow: 0 4px 32px rgba(245,87,108,0.9), 0 0 20px #f5576c; }
+  }
+
+  .music-toggle {
+    position: fixed;
+    top: 10px; right: 10px;
+    background: rgba(0,0,0,0.6);
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 8px 12px; border-radius: 10px;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 100;
+    transition: all 0.2s ease;
+  }
+  .music-toggle:hover { background: rgba(0,0,0,0.8); transform: scale(1.1); }
+</style>
+</head>
+<body class="bg-1">
+
+<div class="watermark top-left">hatebreederdev</div>
+<div class="watermark bottom-right">qwenproduction</div>
+
+<div class="loader" id="loader">
+  <div class="spinner"></div>
+  <div>Loading Cookie Clicker Pro...</div>
+</div>
+
+<div class="particles-bg"></div>
+
+<div class="music-toggle" id="musicToggle">🎵</div>
+
+<div class="game">
+  <div class="header">
+    <div class="balance"><span class="coin">🍪</span> <span id="balance">0</span></div>
+    <div class="level-box">
+      Level <b id="level">1</b><br>
+      <span id="perclick">+1/click</span> · <span id="persec">0/sec</span>
+    </div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-bar" id="progressBar"></div>
+    <div class="progress-text" id="progressText">0 / 100 XP</div>
+  </div>
+
+  <div class="clicker-area" id="clickerArea">
+    <div class="combo-bar">
+      Combo: <span class="combo-count" id="comboCount">0</span>
+      <span class="combo-mult" id="comboMult">x1.0</span>
+    </div>
+    <div class="buffs" id="buffs"></div>
+    <div class="clicker" id="clicker">
+      <span class="emoji" id="sprite">🍪</span>
+    </div>
+    <button class="prestige-btn" id="prestigeBtn" style="display:none;">⭐ Prestige</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="click">⚡ Click</button>
+    <button class="tab" data-tab="passive">💸 Passive</button>
+    <button class="tab" data-tab="donate">🎁 Bonuses</button>
+    <button class="tab" data-tab="achieve">🏆 Achievements</button>
+  </div>
+
+  <div class="scroll-area" id="shop"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="achievement-popup" id="achievementPopup">
+  <div class="ach-title">🏆 ACHIEVEMENT UNLOCKED!</div>
+  <div class="ach-name" id="achName"></div>
+</div>
+
+<script src="https://game-cdn.poki.com/scripts/v2/poki-sdk.js"></script>
+<script>
+let pokiSDK = null;
+
+const state = {
+  balance: 0,
+  level: 1,
+  xp: 0,
+  xpNeeded: 100,
+  clickPower: 1,
+  perSecond: 0,
+  upgrades: {},
+  buffs: {},
+  totalClicks: 0,
+  totalEarned: 0,
+  combo: 0,
+  comboTimer: null,
+  prestige: 0,
+  prestigeMultiplier: 1,
+  achievements: [],
+  lastOrbSpawn: 0,
+  musicEnabled: true,
+  currentTrack: 0
+};
+
+const spritesByLevel = [
+  { min: 1,  emoji: '🍪' },
+  { min: 3,  emoji: '🧁' },
+  { min: 6,  emoji: '🍰' },
+  { min: 10, emoji: '🎂' },
+  { min: 15, emoji: '🍩' },
+  { min: 20, emoji: '🍫' },
+  { min: 30, emoji: '🍬' },
+  { min: 50, emoji: '🍭' }
+];
+
+const bgByLevel = [
+  { min: 1,  cls: 'bg-1' },
+  { min: 4,  cls: 'bg-2' },
+  { min: 8,  cls: 'bg-3' },
+  { min: 12, cls: 'bg-4' },
+  { min: 18, cls: 'bg-5' },
+  { min: 25, cls: 'bg-6' },
+  { min: 35, cls: 'bg-7' },
+  { min: 50, cls: 'bg-8' }
+];
+
+// Сбалансированные улучшения клика (10 штук)
+const clickShop = [
+  { id: 'c1',  name: 'Reinforced Finger',    icon: '👆', desc: '+1 per click',      baseCost: 15,      power: 1,     growth: 1.15 },
+  { id: 'c2',  name: 'Iron Glove',           icon: '🧤', desc: '+3 per click',      baseCost: 100,     power: 3,     growth: 1.15 },
+  { id: 'c3',  name: 'Steel Hammer',         icon: '🔨', desc: '+8 per click',      baseCost: 500,     power: 8,     growth: 1.15 },
+  { id: 'c4',  name: 'Golden Touch',         icon: '✨', desc: '+20 per click',     baseCost: 2000,    power: 20,    growth: 1.15 },
+  { id: 'c5',  name: 'Laser Beam',           icon: '🔫', desc: '+50 per click',     baseCost: 8000,    power: 50,    growth: 1.15 },
+  { id: 'c6',  name: 'Quantum Strike',       icon: '⚛️', desc: '+120 per click',    baseCost: 30000,   power: 120,   growth: 1.15 },
+  { id: 'c7',  name: 'Plasma Cannon',        icon: '💥', desc: '+300 per click',    baseCost: 120000,  power: 300,   growth: 1.15 },
+  { id: 'c8',  name: 'Divine Hand',          icon: '✋', desc: '+800 per click',    baseCost: 500000,  power: 800,   growth: 1.15 },
+  { id: 'c9',  name: 'Cosmic Punch',         icon: '🌟', desc: '+2000 per click',   baseCost: 2000000, power: 2000,  growth: 1.15 },
+  { id: 'c10', name: 'Universe Crusher',     icon: '🌌', desc: '+5000 per click',   baseCost: 8000000, power: 5000,  growth: 1.15 }
+];
+
+// Сбалансированные пассивные улучшения (10 штук)
+const passiveShop = [
+  { id: 'p1',  name: 'Grandma',              icon: '👵', desc: '+1/sec',      baseCost: 50,       ps: 1,      growth: 1.15 },
+  { id: 'p2',  name: 'Cookie Farm',          icon: '🏭', desc: '+4/sec',      baseCost: 250,      ps: 4,      growth: 1.15 },
+  { id: 'p3',  name: 'Bakery',               icon: '🏪', desc: '+10/sec',     baseCost: 1000,     ps: 10,     growth: 1.15 },
+  { id: 'p4',  name: 'Robot Assistant',      icon: '🤖', desc: '+25/sec',     baseCost: 4000,     ps: 25,     growth: 1.15 },
+  { id: 'p5',  name: 'Cookie Factory',       icon: '🏭', desc: '+60/sec',     baseCost: 15000,    ps: 60,     growth: 1.15 },
+  { id: 'p6',  name: 'AI Corporation',       icon: '🧠', desc: '+150/sec',    baseCost: 60000,    ps: 150,    growth: 1.15 },
+  { id: 'p7',  name: 'Planetary Mine',       icon: '🌍', desc: '+400/sec',    baseCost: 250000,   ps: 400,    growth: 1.15 },
+  { id: 'p8',  name: 'Galactic Fleet',       icon: '🚀', desc: '+1000/sec',   baseCost: 1000000,  ps: 1000,   growth: 1.15 },
+  { id: 'p9',  name: 'Dimensional Rift',     icon: '🌀', desc: '+2500/sec',   baseCost: 4000000,  ps: 2500,   growth: 1.15 },
+  { id: 'p10', name: 'Multiverse Engine',    icon: '✨', desc: '+6000/sec',   baseCost: 16000000, ps: 6000,   growth: 1.15 }
+];
+
+const donateShop = [
+  { id: 'd1', name: '+15% Balance',        icon: '💰', desc: '15% of current balance', type: 'balance_pct', value: 0.15 },
+  { id: 'd2', name: 'x2 Click for 30s',    icon: '⚡', desc: 'Double click power',     type: 'buff_click',  value: 2, duration: 30 },
+  { id: 'd3', name: 'x2 Passive for 60s',  icon: '💸', desc: 'Double passive income',  type: 'buff_passive', value: 2, duration: 60 },
+  { id: 'd4', name: 'Free Cookies',        icon: '🎁', desc: 'Bonus based on level',   type: 'flat_bonus' },
+  { id: 'd5', name: 'x3 Everything for 20s', icon: '🔥', desc: 'Triple all income',    type: 'buff_all',    value: 3, duration: 20 },
+  { id: 'd6', name: '+50% Balance',        icon: '💎', desc: 'Mega bonus 50%',         type: 'balance_pct', value: 0.50 }
+];
+
+const achievements = [
+  { id: 'a1', name: 'First Click',       icon: '👆', desc: 'Click 1 time',           check: () => state.totalClicks >= 1 },
+  { id: 'a2', name: 'Clicker',           icon: '🖱️', desc: 'Click 100 times',        check: () => state.totalClicks >= 100 },
+  { id: 'a3', name: 'Maniac',            icon: '⚡', desc: 'Click 1000 times',       check: () => state.totalClicks >= 1000 },
+  { id: 'a4', name: 'Rich',              icon: '💰', desc: 'Earn 10K cookies',       check: () => state.totalEarned >= 10000 },
+  { id: 'a5', name: 'Millionaire',       icon: '💎', desc: 'Earn 1M cookies',        check: () => state.totalEarned >= 1000000 },
+  { id: 'a6', name: 'Billionaire',       icon: '👑', desc: 'Earn 1B cookies',        check: () => state.totalEarned >= 1000000000 },
+  { id: 'a7', name: 'Combo Master',      icon: '🔥', desc: 'Reach combo x10',        check: () => state.combo >= 10 },
+  { id: 'a8', name: 'Level 5',           icon: '⭐', desc: 'Reach level 5',          check: () => state.level >= 5 },
+  { id: 'a9', name: 'Level 20',          icon: '🌟', desc: 'Reach level 20',         check: () => state.level >= 20 },
+  { id: 'a10', name: 'Prestige',         icon: '🌠', desc: 'First prestige',         check: () => state.prestige >= 1 }
+];
+
+const $ = id => document.getElementById(id);
+const balanceEl = $('balance'), levelEl = $('level'), perclickEl = $('perclick'),
+      persecEl = $('persec'), progressBar = $('progressBar'), progressText = $('progressText'),
+      clicker = $('clicker'), spriteEl = $('sprite'), clickerArea = $('clickerArea'),
+      shopEl = $('shop'), toastEl = $('toast'), buffsEl = $('buffs'),
+      comboCountEl = $('comboCount'), comboMultEl = $('comboMult'),
+      prestigeBtn = $('prestigeBtn'), achievementPopup = $('achievementPopup'),
+      achNameEl = $('achName'), musicToggle = $('musicToggle');
+
+let currentTab = 'click';
+let shopDirty = true;
+let lastShopRender = 0;
+
+let audioCtx = null;
+let musicInterval = null;
+
+function initAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+}
+
+function playNote(freq, duration, type = 'sine') {
+  if (!state.musicEnabled || !audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(audioCtx.currentTime);
+  osc.stop(audioCtx.currentTime + duration);
+}
+
+const tracks = [
+  [262, 294, 330, 349, 392, 349, 330, 294],
+  [330, 392, 440, 494, 523, 494, 440, 392],
+  [392, 440, 494, 523, 587, 659, 587, 523],
+  [220, 247, 262, 294, 330, 294, 262, 247],
+  [294, 330, 370, 392, 440, 494, 440, 392],
+  [440, 494, 523, 587, 659, 784, 659, 587],
+  [523, 587, 659, 784, 880, 784, 659, 587],
+  [659, 784, 880, 988, 1047, 988, 880, 784]
+];
+
+let currentNoteIndex = 0;
+let currentTrackIndex = 0;
+
+function startMusic() {
+  if (musicInterval) clearInterval(musicInterval);
+  currentNoteIndex = 0;
+  musicInterval = setInterval(() => {
+    if (!state.musicEnabled) return;
+    const track = tracks[currentTrackIndex];
+    playNote(track[currentNoteIndex], 0.3, 'sine');
+    currentNoteIndex = (currentNoteIndex + 1) % track.length;
+  }, 400);
+}
+
+function updateMusic() {
+  let newTrack = 0;
+  if (state.level >= 50) newTrack = 7;
+  else if (state.level >= 35) newTrack = 6;
+  else if (state.level >= 25) newTrack = 5;
+  else if (state.level >= 18) newTrack = 4;
+  else if (state.level >= 12) newTrack = 3;
+  else if (state.level >= 8) newTrack = 2;
+  else if (state.level >= 4) newTrack = 1;
+  
+  if (newTrack !== currentTrackIndex) {
+    currentTrackIndex = newTrack;
+    currentNoteIndex = 0;
+    showToast(`🎵 New music unlocked!`);
+  }
+}
+
+musicToggle.addEventListener('click', () => {
+  state.musicEnabled = !state.musicEnabled;
+  musicToggle.textContent = state.musicEnabled ? '🎵' : '🔇';
+  if (state.musicEnabled) {
+    initAudio();
+    startMusic();
+  } else {
+    if (musicInterval) clearInterval(musicInterval);
+  }
+  save();
+});
+
+async function initSDK() {
+  try {
+    if (typeof PokiSDK !== 'undefined') {
+      await PokiSDK.init();
+      pokiSDK = PokiSDK;
+      console.log('Poki SDK initialized');
+    }
+  } catch (e) {
+    console.warn('Poki SDK init failed, running in local mode', e);
+  }
+  await loadSave();
+  $('loader').classList.add('hide');
+  initAudio();
+  if (state.musicEnabled) startMusic();
+  startGameLoop();
+}
+
+async function loadSave() {
+  const local = localStorage.getItem('cookieClickerProSave');
+  if (local) {
+    try { Object.assign(state, JSON.parse(local)); } catch(e){}
+  }
+  recalcStats();
+  renderHeader();
+  renderProgress();
+  renderSprite();
+  renderBackground();
+  renderShop();
+  updateMusic();
+}
+
+async function save() {
+  try { localStorage.setItem('cookieClickerProSave', JSON.stringify(state)); } catch(e){}
+}
+
+function getCost(item) {
+  const lvl = state.upgrades[item.id] || 0;
+  return Math.floor(item.baseCost * Math.pow(item.growth, lvl));
+}
+
+function recalcStats() {
+  let click = 1, ps = 0;
+  clickShop.forEach(i => { click += (state.upgrades[i.id] || 0) * i.power; });
+  passiveShop.forEach(i => { ps += (state.upgrades[i.id] || 0) * i.ps; });
+
+  const now = Date.now();
+  let clickMult = 1, psMult = 1;
+  Object.entries(state.buffs).forEach(([id, end]) => {
+    if (end > now) {
+      const item = donateShop.find(d => d.id === id);
+      if (!item) return;
+      if (item.type === 'buff_click') clickMult *= item.value;
+      if (item.type === 'buff_passive') psMult *= item.value;
+      if (item.type === 'buff_all') { clickMult *= item.value; psMult *= item.value; }
+    } else {
+      delete state.buffs[id];
+    }
+  });
+
+  const comboMult = 1 + (state.combo * 0.05);
+  
+  state.clickPower = Math.floor(click * clickMult * comboMult * state.prestigeMultiplier);
+  state.perSecond = Math.floor(ps * psMult * state.prestigeMultiplier);
+}
+
+function renderHeader() {
+  balanceEl.textContent = formatNum(state.balance);
+  levelEl.textContent = state.level;
+  perclickEl.textContent = '+' + formatNum(state.clickPower) + '/click';
+  persecEl.textContent = formatNum(state.perSecond) + '/sec';
+}
+
+function renderProgress() {
+  const pct = Math.min(100, (state.xp / state.xpNeeded) * 100);
+  progressBar.style.width = pct + '%';
+  progressText.textContent = `${formatNum(state.xp)} / ${formatNum(state.xpNeeded)} XP`;
+}
+
+function renderSprite() {
+  let currentSprite = spritesByLevel[0].emoji;
+  for (const s of spritesByLevel) if (state.level >= s.min) currentSprite = s.emoji;
+  if (spriteEl.textContent !== currentSprite) {
+    spriteEl.style.transform = 'scale(0.5)';
+    setTimeout(() => {
+      spriteEl.textContent = currentSprite;
+      spriteEl.style.transform = 'scale(1)';
+    }, 150);
+  }
+}
+
+function renderBackground() {
+  let currentBg = bgByLevel[0].cls;
+  for (const b of bgByLevel) if (state.level >= b.min) currentBg = b.cls;
+  document.body.className = currentBg;
+}
+
+function renderBuffs() {
+  const now = Date.now();
+  const active = Object.entries(state.buffs).filter(([,end]) => end > now);
+  buffsEl.innerHTML = active.map(([id, end]) => {
+    const item = donateShop.find(d => d.id === id);
+    if (!item) return '';
+    const sec = Math.ceil((end - now) / 1000);
+    return `<div class="buff">${item.icon} ${item.name} · ${sec}s</div>`;
+  }).join('');
+}
+
+function renderCombo() {
+  comboCountEl.textContent = state.combo;
+  const mult = 1 + (state.combo * 0.05);
+  comboMultEl.textContent = 'x' + mult.toFixed(2);
+}
+
+function renderPrestige() {
+  if (state.level >= 30) {
+    prestigeBtn.style.display = 'block';
+    const bonus = Math.floor(Math.sqrt(state.level) * 10);
+    prestigeBtn.textContent = `⭐ Prestige (+${bonus}%)`;
+  } else {
+    prestigeBtn.style.display = 'none';
+  }
+}
+
+function renderShop() {
+  const now = Date.now();
+  if (!shopDirty && now - lastShopRender < 500) return;
+  shopDirty = false;
+  lastShopRender = now;
+
+  let items = [];
+  if (currentTab === 'click') items = clickShop;
+  else if (currentTab === 'passive') items = passiveShop;
+  else if (currentTab === 'donate') items = donateShop;
+  else if (currentTab === 'achieve') {
+    shopEl.innerHTML = achievements.map(ach => {
+      const unlocked = state.achievements.includes(ach.id);
+      return `
+        <div class="shop-item ${unlocked ? '' : 'locked'}">
+          <div class="item-icon">${ach.icon}</div>
+          <div class="item-info">
+            <div class="item-name">${ach.name}</div>
+            <div class="item-desc">${ach.desc}</div>
+            <div class="item-level">${unlocked ? '✅ Unlocked' : '🔒 Locked'}</div>
+          </div>
+        </div>`;
+    }).join('');
+    return;
+  }
+
+  shopEl.innerHTML = items.map(item => {
+    if (currentTab === 'donate') {
+      return `
+        <div class="shop-item">
+          <div class="item-icon">${item.icon}</div>
+          <div class="item-info">
+            <div class="item-name">${item.name}</div>
+            <div class="item-desc">${item.desc}</div>
+          </div>
+          <button class="buy-btn ad" onclick="buyDonate('${item.id}')">▶ Watch Ad</button>
+        </div>`;
+    }
+    const lvl = state.upgrades[item.id] || 0;
+    const cost = getCost(item);
+    const canBuy = state.balance >= cost;
+    return `
+      <div class="shop-item ${canBuy ? '' : 'locked'}">
+        <div class="item-icon">${item.icon}</div>
+        <div class="item-info">
+          <div class="item-name">${item.name}</div>
+          <div class="item-desc">${item.desc}</div>
+          <div class="item-level">Lvl ${lvl}</div>
+        </div>
+        <button class="buy-btn" onclick="buyUpgrade('${item.id}')" ${canBuy ? '' : 'disabled'}>
+          🍪 ${formatNum(cost)}
+        </button>
+      </div>`;
+  }).join('');
+}
+
+function formatNum(n) {
+  if (n < 1000) return Math.floor(n).toString();
+  if (n < 1e6) return (n/1e3).toFixed(1) + 'K';
+  if (n < 1e9) return (n/1e6).toFixed(2) + 'M';
+  if (n < 1e12) return (n/1e9).toFixed(2) + 'B';
+  return (n/1e12).toFixed(2) + 'T';
+}
+
+clicker.addEventListener('click', (e) => {
+  state.combo++;
+  clearTimeout(state.comboTimer);
+  state.comboTimer = setTimeout(() => {
+    state.combo = 0;
+    recalcStats();
+    renderCombo();
+  }, 2000);
+
+  let gain = state.clickPower;
+  let isCrit = false;
+  if (Math.random() < 0.1) {
+    gain *= 5;
+    isCrit = true;
+  }
+
+  state.balance += gain;
+  state.xp += gain;
+  state.totalClicks++;
+  state.totalEarned += gain;
+
+  recalcStats();
+  checkLevelUp();
+  checkAchievements();
+  spawnFloatText(e, '+' + formatNum(gain), isCrit);
+  spawnParticles(e, isCrit);
+  playClickSound(isCrit);
+
+  renderHeader();
+  renderProgress();
+  renderCombo();
+  renderPrestige();
+  shopDirty = true;
+});
+
+function playClickSound(isCrit = false) {
+  if (!audioCtx) return;
+  const freq = isCrit ? 1200 : 800;
+  const duration = isCrit ? 0.2 : 0.1;
+  playNote(freq, duration, 'square');
+}
+
+function spawnFloatText(e, text, isCrit = false) {
+  const rect = clickerArea.getBoundingClientRect();
+  const el = document.createElement('div');
+  el.className = 'float-text' + (isCrit ? ' crit' : '');
+  el.textContent = text + (isCrit ? ' CRIT!' : '');
+  el.style.left = (e.clientX - rect.left) + 'px';
+  el.style.top = (e.clientY - rect.top) + 'px';
+  clickerArea.appendChild(el);
+  setTimeout(() => el.remove(), 1000);
+}
+
+function spawnParticles(e, isCrit = false) {
+  const rect = clickerArea.getBoundingClientRect();
+  const cx = e.clientX - rect.left, cy = e.clientY - rect.top;
+  const count = isCrit ? 12 : 6;
+  const color = isCrit ? '#ff4444' : '#ffd700';
+  
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.background = color;
+    p.style.boxShadow = `0 0 6px ${color}`;
+    p.style.left = cx + 'px';
+    p.style.top = cy + 'px';
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 40 + Math.random() * (isCrit ? 80 : 40);
+    const dx = Math.cos(angle) * dist, dy = Math.sin(angle) * dist;
+    clickerArea.appendChild(p);
+    p.animate([
+      { transform: 'translate(0,0) scale(1)', opacity: 1 },
+      { transform: `translate(${dx}px, ${dy}px) scale(0)`, opacity: 0 }
+    ], { duration: 600, easing: 'ease-out' });
+    setTimeout(() => p.remove(), 600);
+  }
+}
+
+function checkLevelUp() {
+  while (state.xp >= state.xpNeeded) {
+    state.xp -= state.xpNeeded;
+    state.level++;
+    state.xpNeeded = Math.floor(100 * Math.pow(1.35, state.level - 1));
+    showToast(`🎉 Level ${state.level}!`);
+    renderSprite();
+    renderBackground();
+    renderPrestige();
+    updateMusic();
+    shopDirty = true;
+  }
+}
+
+function checkAchievements() {
+  achievements.forEach(ach => {
+    if (!state.achievements.includes(ach.id) && ach.check()) {
+      state.achievements.push(ach.id);
+      showAchievement(ach);
+      playNote(600, 0.5, 'sine');
+      shopDirty = true;
+    }
+  });
+}
+
+function showAchievement(ach) {
+  achNameEl.textContent = ach.icon + ' ' + ach.name;
+  achievementPopup.classList.add('show');
+  setTimeout(() => achievementPopup.classList.remove('show'), 3000);
+}
+
+window.buyUpgrade = function(id) {
+  const item = [...clickShop, ...passiveShop].find(i => i.id === id);
+  if (!item) return;
+  const cost = getCost(item);
+  if (state.balance < cost) return;
+  state.balance -= cost;
+  state.upgrades[id] = (state.upgrades[id] || 0) + 1;
+  recalcStats();
+  renderHeader();
+  shopDirty = true;
+  save();
+  playNote(500, 0.15, 'sine');
+};
+
+window.buyDonate = async function(id) {
+  const item = donateShop.find(i => i.id === id);
+  if (!item) return;
+
+  const ok = await showRewardedAd();
+  if (!ok) {
+    showToast('❌ Ad not watched');
+    return;
+  }
+
+  if (item.type === 'balance_pct') {
+    const bonus = Math.floor(state.balance * item.value) + 100;
+    state.balance += bonus;
+    state.totalEarned += bonus;
+    showToast(`✅ +${formatNum(bonus)} cookies!`);
+  } else if (item.type === 'flat_bonus') {
+    const bonus = Math.max(100, state.level * 500);
+    state.balance += bonus;
+    state.totalEarned += bonus;
+    showToast(`✅ +${formatNum(bonus)} cookies!`);
+  } else if (item.type.startsWith('buff_')) {
+    state.buffs[id] = Date.now() + item.duration * 1000;
+    recalcStats();
+    showToast(`🔥 ${item.name} activated!`);
+  }
+
+  renderHeader();
+  shopDirty = true;
+  save();
+};
+
+prestigeBtn.addEventListener('click', () => {
+  if (state.level < 30) return;
+  if (!confirm(`Reset progress for income bonus?\n\nCurrent level: ${state.level}\nBonus: +${Math.floor(Math.sqrt(state.level) * 10)}%`)) return;
+  
+  const bonus = Math.floor(Math.sqrt(state.level) * 10);
+  state.prestige++;
+  state.prestigeMultiplier += bonus / 100;
+  state.balance = 0;
+  state.level = 1;
+  state.xp = 0;
+  state.xpNeeded = 100;
+  state.upgrades = {};
+  state.buffs = {};
+  state.combo = 0;
+  
+  recalcStats();
+  renderHeader();
+  renderProgress();
+  renderSprite();
+  renderBackground();
+  renderPrestige();
+  renderCombo();
+  shopDirty = true;
+  save();
+  
+  showToast(`⭐ Prestige ${state.prestige}! Bonus: x${state.prestigeMultiplier.toFixed(2)}`);
+  checkAchievements();
+  updateMusic();
+});
+
+function showRewardedAd() {
+  return new Promise((resolve) => {
+    if (!pokiSDK) {
+      showToast('📺 [local] Ad watched');
+      setTimeout(() => resolve(true), 500);
+      return;
+    }
+    try {
+      pokiSDK.rewardedBreak().then(() => {
+        resolve(true);
+      }).catch(() => {
+        resolve(false);
+      });
+    } catch(e) {
+      console.warn('rewardedBreak failed', e);
+      resolve(false);
+    }
+  });
+}
+
+let toastTimer;
+function showToast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2500);
+}
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentTab = tab.dataset.tab;
+    shopDirty = true;
+    renderShop();
+  });
+});
+
+function spawnBonusOrb() {
+  const now = Date.now();
+  if (now - state.lastOrbSpawn < 30000) return;
+  if (Math.random() > 0.3) return;
+  
+  state.lastOrbSpawn = now;
+  
+  const orb = document.createElement('div');
+  orb.className = 'bonus-orb';
+  orb.textContent = '🍪';
+  orb.style.left = (Math.random() * 80 + 10) + '%';
+  orb.style.top = (Math.random() * 60 + 20) + '%';
+  
+  orb.addEventListener('click', () => {
+    const bonus = Math.floor(state.balance * 0.1) + 100;
+    state.balance += bonus;
+    state.totalEarned += bonus;
+    showToast(`🍪 Bonus! +${formatNum(bonus)} cookies!`);
+    orb.remove();
+    renderHeader();
+    save();
+    playNote(700, 0.3, 'sine');
+  });
+  
+  clickerArea.appendChild(orb);
+  setTimeout(() => orb.remove(), 10000);
+}
+
+let lastTick = Date.now();
+function startGameLoop() {
+  setInterval(() => {
+    const now = Date.now();
+    const dt = (now - lastTick) / 1000;
+    lastTick = now;
+
+    if (state.perSecond > 0) {
+      const gain = state.perSecond * dt;
+      state.balance += gain;
+      state.xp += gain * 0.3;
+      state.totalEarned += gain;
+      checkLevelUp();
+      checkAchievements();
+      renderHeader();
+      renderProgress();
+    }
+
+    const hadBuffs = Object.keys(state.buffs).length > 0;
+    Object.keys(state.buffs).forEach(id => {
+      if (state.buffs[id] <= now) delete state.buffs[id];
+    });
+    if (hadBuffs) {
+      recalcStats();
+      renderHeader();
+    }
+
+    renderBuffs();
+    spawnBonusOrb();
+  }, 100);
+
+  setInterval(() => {
+    if (shopDirty) renderShop();
+  }, 500);
+
+  setInterval(save, 10000);
+}
+
+window.addEventListener('beforeunload', save);
+document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
+
+initSDK();
+</script>
+</body>
+</html>
